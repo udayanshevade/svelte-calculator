@@ -6,26 +6,26 @@
 
   $: displayValue = stack.join(' ');
 
-  const handleButtonClick = (val: number | string) => {
+  const handleButtonClick = (newVal: number | string) => {
     // TODO: handle button click
-    if (val === 'clear') {
+    if (newVal === 'clear') {
       stack = [];
       return;
     }
 
     if (!stack.length) {
-      stack = [val];
+      stack = [newVal];
       return;
     }
 
-    const latestOperation = stack[stack.length - 1];
-    if (isNumber(latestOperation) && isNumber(val)) {
-      const updatedNum = `${latestOperation}${val}`;
+    const prevOp = stack[stack.length - 1];
+    if (isNumber(prevOp) && isNumber(newVal)) {
+      const updatedNum = `${prevOp}${newVal}`;
       stack = [...stack.slice(0, stack.length - 1), Number(updatedNum)];
-    } else if (isString(latestOperation) && isString(val)) {
-      stack = [...stack.slice(0, stack.length - 1), val];
+    } else if (isString(prevOp) && isString(newVal)) {
+      stack = [...stack.slice(0, stack.length - 1), newVal];
     } else {
-      stack = [...stack, val];
+      stack = [...stack, newVal];
     }
   };
 </script>
