@@ -24,6 +24,12 @@ npm run dev
 
 Navigate to [localhost:5000](http://localhost:5000). You should see the app running.
 
+If you make changes, first run the following script to enable sym-links for git hooks.
+
+```bash
+./setup_git_hooks.bash
+```
+
 ## Uses
 
 - [Typescript](https://github.com/microsoft/TypeScript)
