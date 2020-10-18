@@ -1,5 +1,8 @@
 <script lang="ts">
+  import Display from '../../components/Display/Display.svelte';
   import Button from '../../components/Button/Button.svelte';
+
+  let displayValue = '';
 
   const handleButtonClick = (buttonType: number | string) => {
     // TODO: handle button click
@@ -8,6 +11,7 @@
 </script>
 
 <section class="calculator">
+  <Display displayValue={displayValue} />
   {#each config as rowConfig}
     <div class="row">
       {#each rowConfig as { id, value, title, className, text } (id)}
