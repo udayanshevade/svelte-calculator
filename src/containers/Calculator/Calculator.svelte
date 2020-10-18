@@ -28,10 +28,17 @@
   export const config: {
     id: string,
     title: string,
-    text: string,
+    text?: string,
     value: number | string,
     className?: string
   }[][] = [
+    [
+      {
+        id: 'clear',
+        title: 'Clear',
+        value: 'clear'
+      }
+    ],
     [
       {
         id: 'seven',

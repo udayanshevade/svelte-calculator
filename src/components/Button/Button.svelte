@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let text: string;
+  export let text: string = null;
   export let id: string;
   export let className: string;
   export let title: string;
