@@ -2,15 +2,35 @@
   import Display from '../../components/Display/Display.svelte';
   import Button from '../../components/Button/Button.svelte';
 
-  let displayValue = '';
+  let stack: (number | string)[] = [];
 
-  const handleButtonClick = (buttonType: number | string) => {
+  $: displayValue = stack.join(' ');
+
+  const handleButtonClick = (val: number | string) => {
     // TODO: handle button click
-    console.log(buttonType);
+    if (val === 'clear') {
+      stack = [];
+      return;
+    }
+
+    if (!stack.length) {
+      stack = [val];
+      return;
+    }
+
+    const latestOperation = stack[stack.length - 1];
+    if (isNumber(latestOperation) && isNumber(val)) {
+      const updatedNum = `${latestOperation}${val}`;
+      stack = [...stack.slice(0, stack.length - 1), Number(updatedNum)];
+    } else if (isString(latestOperation) && isString(val)) {
+      stack = [...stack.slice(0, stack.length - 1), val];
+    } else {
+      stack = [...stack, val];
+    }
   };
 </script>
 
-<section class="calculator">
+<div class="calculator">
   <Display displayValue={displayValue} />
   {#each config as rowConfig}
     <div class="row">
@@ -26,13 +46,13 @@
       {/each}
     </div>
   {/each}
-</section>
+</div>
 
 <script lang="ts" context="module">
   export const config: {
     id: string,
     title: string,
-    text?: string,
+    text: string,
     value: number | string,
     className?: string
   }[][] = [
@@ -40,6 +60,7 @@
       {
         id: 'clear',
         title: 'Clear',
+        text: 'AC',
         value: 'clear'
       }
     ],
@@ -149,4 +170,9 @@
       }
     ]
   ];
+
+
+  // utils
+  const isNumber = (val: number | string) => typeof val === 'number';
+  const isString = (val: number | string) => typeof val === 'string';
 </script>
