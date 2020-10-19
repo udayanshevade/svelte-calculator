@@ -29,6 +29,12 @@
     box-shadow: 1px 3px 6px rgba(0, 0, 0, 0.3);
     background: #555;
   }
+
+  .button:hover {
+    cursor: pointer;
+    background: #3a3a3a;
+    box-shadow: 2px 4px 5px rgba(0, 0, 0, 0.4);
+  }
 </style>
 
 <button
