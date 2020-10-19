@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-  import type { Operation } from './helpers';
+  import type { Operation } from "./helpers";
   const toFixedDigits = 10;
   // reduce the array by immediate execution
   // TODO: use formula logic
@@ -18,16 +18,16 @@
   };
 
   export const getDisplayValue = (stack: Operation[]): string => {
-    if (!stack.length) return '0';
-    return stack.join(' ');
+    if (!stack.length) return "0";
+    return stack.join(" ");
   };
 </script>
 
 <script lang="ts">
-  import classnames from 'classnames';
-  import Display from '../../components/Display/Display.svelte';
-  import Button from '../../components/Button/Button.svelte';
-  import { config } from './config';
+  import classnames from "classnames";
+  import Display from "../../components/Display/Display.svelte";
+  import Button from "../../components/Button/Button.svelte";
+  import { config } from "./config";
   import {
     isNumber,
     isValidNumber,
@@ -36,14 +36,27 @@
     suffixNumbers,
     suffixDecimal,
     operationHandlers,
-  } from './helpers';
+  } from "./helpers";
 
   let stack: Operation[] = [];
 
   $: displayValue = getDisplayValue(stack);
 
+  let activeKey: Operation = null;
+  let highlightedTimeoutId: number = null;
+  const highlightedTimeout = 125;
+  $: {
+    if (activeKey !== null) {
+      highlightedTimeoutId = setTimeout(() => {
+        activeKey = null;
+      }, highlightedTimeout);
+    } else {
+      clearTimeout(highlightedTimeoutId);
+    }
+  }
+
   const handleButtonClick = (newOperation: Operation) => {
-    if (newOperation === 'clear') {
+    if (newOperation === "clear") {
       stack = [];
       return;
     }
@@ -58,16 +71,16 @@
     const lastOperation = stack[stack.length - 1];
     const secondLastOperation = stack[stack.length - 2];
 
-    if (newOperation === '=') {
+    if (newOperation === "=") {
       // ignore duplicate operation
       // e.g. [1, '+', 1, '=', 2] --> [1, '+', 1, '=', 2] (no change)
-      if (secondLastOperation === '=') return;
+      if (secondLastOperation === "=") return;
       // compute updated result
       const result = computeValue(stack);
       // e.g. [2, '*', 6] --> [2, '*', 6, '=', 12]
-      stack[stack.length] = '=';
+      stack[stack.length] = "=";
       stack[stack.length] = result;
-    } else if (secondLastOperation === '=') {
+    } else if (secondLastOperation === "=") {
       if (isNumber(newOperation)) {
         // start a new stack with a new number
         // e.g. [12, '/', 4, '=', 3] --> [5]
@@ -81,7 +94,7 @@
       // EDGE CASE: ignore consecutive 0's in a new numeric operation
       if (lastOperation === 0 && newOperation === 0) return;
       stack[stack.length - 1] = suffixNumbers(lastOperation, newOperation);
-    } else if (isNumber(lastOperation) && newOperation === '.') {
+    } else if (isNumber(lastOperation) && newOperation === ".") {
       // noop if the lastOperation is already a decimal
       // e.g. [12.34] --> [12.34] (no change)
       if (Math.round(lastOperation) !== lastOperation) return;
@@ -91,12 +104,12 @@
       let suffixToAppend: string;
       // EDGE CASE: value being converted to decimal is -0
       if (Object.is(lastOperation, -0)) {
-        suffixToAppend = suffix('-0', newOperation);
+        suffixToAppend = suffix("-0", newOperation);
       } else {
         suffixToAppend = suffixDecimal(lastOperation, newOperation);
       }
       stack[stack.length - 1] = suffixToAppend;
-    } else if (isString(lastOperation) && newOperation === '.') {
+    } else if (isString(lastOperation) && newOperation === ".") {
       // EDGE CASE: lastOperation is a string decimal with a trailing '.'
       // and newOperation is another decimal point
       // e.g. ['12.'] --> ['12.'] (no change)
@@ -121,8 +134,8 @@
         }
         stack[stack.length - 1] = suffixToAppend;
       } else if (
-        lastOperation === '-' &&
-        typeof operationHandlers[secondLastOperation] === 'function'
+        lastOperation === "-" &&
+        typeof operationHandlers[secondLastOperation] === "function"
       ) {
         stack[stack.length - 1] = Number(suffix(lastOperation, newOperation));
       } else {
@@ -134,12 +147,12 @@
     } else if (isString(lastOperation) && isString(newOperation)) {
       // EDGE CASE: if newOperation is '-', accommodate it
       // e.g. ['1', '/'] --> ['1', '/', '-']
-      if (newOperation === '-') {
+      if (newOperation === "-") {
         stack = [...stack, newOperation];
       } else if (
-        lastOperation === '-' &&
-        typeof operationHandlers[secondLastOperation] === 'function' &&
-        typeof operationHandlers[newOperation] === 'function'
+        lastOperation === "-" &&
+        typeof operationHandlers[secondLastOperation] === "function" &&
+        typeof operationHandlers[newOperation] === "function"
       ) {
         // EDGE CASE: if lastOperation was '-' and secondLastOperation was also an operator,
         // and the new operation is also an operator
@@ -158,14 +171,18 @@
   const handleKeydown = (e: KeyboardEvent) => {
     const keyNum = Number(e.key);
     if (isNaN(keyNum)) {
-      if (/[\/\*\-\+]/.test(e.key)) {
+      if (/[\/\*\-\+\=]/.test(e.key)) {
+        activeKey = e.key;
         handleButtonClick(e.key);
-      } else if (e.key === 'Enter' || e.key === '=') {
-        handleButtonClick('=');
-      } else if (e.key === 'Escape' || e.key === 'Backspace') {
-        handleButtonClick('clear');
+      } else if (e.key === "Enter") {
+        activeKey = "=";
+        handleButtonClick("=");
+      } else if (e.key === "Escape") {
+        activeKey = "clear";
+        handleButtonClick("clear");
       }
     } else {
+      activeKey = keyNum;
       handleButtonClick(keyNum);
     }
   };
@@ -221,7 +238,8 @@
             className={classnames(className)}
             {text}
             {value}
-            onClick={() => handleButtonClick(value)} />
+            onClick={() => handleButtonClick(value)}
+            highlighted={activeKey === value} />
         {/each}
       </div>
     {/each}

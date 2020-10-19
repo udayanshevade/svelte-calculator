@@ -218,6 +218,15 @@ describe('Calculator', () => {
       userEvent.type(display, '{escape}');
       await waitFor(() => expect(display).toHaveTextContent('0'));
     });
+    it('animates pressed key', async () => {
+      render(Calculator);
+      const display = screen.getByRole('region');
+      const button = screen.getByText('5', { selector: 'button' });
+      userEvent.type(display, '12345');
+      await waitFor(() =>
+        expect(button).not.toHaveStyle({ background: '#333' })
+      );
+    });
   });
 
   it('method evaluates a stack output correctly', () => {
