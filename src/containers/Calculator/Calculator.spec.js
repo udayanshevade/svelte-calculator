@@ -28,6 +28,12 @@ describe('Calculator', () => {
     });
   });
 
+  it('display renders an initial value', () => {
+    render(Calculator);
+    const display = screen.getByRole('region');
+    expect(display).toHaveTextContent('0');
+  });
+
   describe('handles the stack correctly', () => {
     it('renders consecutive clicked numbers', async () => {
       render(Calculator);
@@ -56,7 +62,7 @@ describe('Calculator', () => {
 
       applyInputs(['AC']);
 
-      await waitFor(() => expect(display).toHaveTextContent(''));
+      await waitFor(() => expect(display).toHaveTextContent('0'));
     });
 
     it('handles alternating inputs', async () => {

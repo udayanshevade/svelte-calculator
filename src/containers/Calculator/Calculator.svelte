@@ -1,13 +1,14 @@
 <script lang="ts" context="module">
   type Operation = number | string;
+  type ButtonConfig = {
+    id: string,
+    title: string,
+    text: string,
+    value: number | string,
+    className?: string
+  };
 
-  export const config: {
-    id: string;
-    title: string;
-    text: string;
-    value: number | string;
-    className?: string;
-  }[][] = [
+  export const config: ButtonConfig[][] = [
     [{ id: "clear", title: "Clear", text: "AC", value: "clear" }],
     [
       { id: "seven", title: "Seven", text: "7", value: 7 },
@@ -62,7 +63,7 @@
 
   let stack: Operation[] = [];
 
-  $: displayValue = stack.join(" ");
+  $: displayValue = stack.join(" ") || '0';
 
   const handleButtonClick = (newOperation: Operation) => {
     // TODO: handle button click
