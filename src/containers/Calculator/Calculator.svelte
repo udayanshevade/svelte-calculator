@@ -66,7 +66,7 @@
       const result = computeValue(stack);
       // e.g. [2, '*', 6] --> [2, '*', 6, '=', 12]
       stack[stack.length] = '=';
-      stack[stack.length + 1] = result;
+      stack[stack.length] = result;
     } else if (secondLastOperation === '=') {
       if (isNumber(newOperation)) {
         // start a new stack with a new number
@@ -154,6 +154,21 @@
       stack = [...stack, newOperation];
     }
   };
+
+  const handleKeydown = (e: KeyboardEvent) => {
+    const keyNum = Number(e.key);
+    if (isNaN(keyNum)) {
+      if (/[\/\*\-\+]/.test(e.key)) {
+        handleButtonClick(e.key);
+      } else if (e.key === 'Enter' || e.key === '=') {
+        handleButtonClick('=');
+      } else if (e.key === 'Escape' || e.key === 'Backspace') {
+        handleButtonClick('clear');
+      }
+    } else {
+      handleButtonClick(keyNum);
+    }
+  };
 </script>
 
 <style>
@@ -191,6 +206,8 @@
     border-bottom-right-radius: 0.5rem;
   }
 </style>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <div class="calculator">
   <div class="calculator-inner">

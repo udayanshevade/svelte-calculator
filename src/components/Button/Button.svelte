@@ -19,6 +19,7 @@
     border-radius: 0.2rem;
     border: 1px solid #2222;
     box-shadow: 3px 5px 8px rgba(0, 0, 0, 0.3);
+    user-select: none;
   }
   .button:active {
     box-shadow: 1px 3px 6px rgba(0, 0, 0, 0.3);

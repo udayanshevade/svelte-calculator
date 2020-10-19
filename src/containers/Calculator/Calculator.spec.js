@@ -193,6 +193,33 @@ describe('Calculator', () => {
     });
   });
 
+  describe('handles keydown correctly', () => {
+    it('for numbers', async () => {
+      render(Calculator);
+      const display = screen.getByRole('region');
+      userEvent.type(display, '12345');
+      await waitFor(() => expect(display).toHaveTextContent('12345'));
+    });
+    it('for operators', async () => {
+      render(Calculator);
+      const display = screen.getByRole('region');
+      userEvent.type(display, '1*2-3+4/5=');
+      await waitFor(() =>
+        expect(display).toHaveTextContent('1 * 2 - 3 + 4 / 5 = 0.6')
+      );
+    });
+    it('for extra keys', async () => {
+      render(Calculator);
+      const display = screen.getByRole('region');
+      userEvent.type(display, '1*2-3+4/5{enter}');
+      await waitFor(() =>
+        expect(display).toHaveTextContent('1 * 2 - 3 + 4 / 5 = 0.6')
+      );
+      userEvent.type(display, '{escape}');
+      await waitFor(() => expect(display).toHaveTextContent('0'));
+    });
+  });
+
   it('method evaluates a stack output correctly', () => {
     const stack = [123, '*', -0.4, '+', 19, '/', 43, '+', '56.'];
     expect(computeValue(stack)).toEqual(55.2976744186);
