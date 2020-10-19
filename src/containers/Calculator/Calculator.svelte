@@ -1,4 +1,5 @@
 <script lang="ts" context="module">
+  import type { Operation } from './helpers';
   const toFixedDigits = 10;
   // reduce the array by immediate execution
   // TODO: use formula logic
@@ -23,6 +24,7 @@
 </script>
 
 <script lang="ts">
+  import classnames from 'classnames';
   import Display from '../../components/Display/Display.svelte';
   import Button from '../../components/Button/Button.svelte';
   import { config } from './config';
@@ -34,7 +36,6 @@
     suffixNumbers,
     suffixDecimal,
     operationHandlers,
-    Operation,
   } from './helpers';
 
   let stack: Operation[] = [];
@@ -155,19 +156,57 @@
   };
 </script>
 
+<style>
+  .calculator {
+    border-radius: 1rem;
+    border: 2px solid #222;
+    background: #333;
+    max-width: 100%;
+    width: 15rem;
+    padding: 0.5rem;
+  }
+  .calculator-inner {
+    border-radius: 1rem;
+    border: 1px solid #222;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, calc(25% - 0.075rem));
+    grid-column-gap: 0.1rem;
+  }
+  .row--full {
+    grid-template-columns: auto;
+  }
+  .calculator .row--full :global(.button) {
+    margin: 0.25rem 0 0.5rem;
+    width: auto;
+  }
+  .calculator .row:last-of-type :global(.button) {
+    margin-bottom: 0.25rem;
+  }
+  .calculator .row:last-of-type :global(.button:first-of-type) {
+    border-bottom-left-radius: 0.5rem;
+  }
+  .calculator .row:last-of-type :global(.button:last-of-type) {
+    border-bottom-right-radius: 0.5rem;
+  }
+</style>
+
 <div class="calculator">
-  <Display {displayValue} />
-  {#each config as rowConfig}
-    <div class="row">
-      {#each rowConfig as { id, value, title, className, text } (id)}
-        <Button
-          {id}
-          {title}
-          className={`button ${className}`}
-          {text}
-          {value}
-          onClick={() => handleButtonClick(value)} />
-      {/each}
-    </div>
-  {/each}
+  <div class="calculator-inner">
+    <Display {displayValue} />
+    {#each config as { className: rowClassName, config: rowConfig }}
+      <div class={classnames('row', rowClassName)}>
+        {#each rowConfig as { id, value, title, className, text } (id)}
+          <Button
+            {id}
+            {title}
+            className={classnames(className)}
+            {text}
+            {value}
+            onClick={() => handleButtonClick(value)} />
+        {/each}
+      </div>
+    {/each}
+  </div>
 </div>

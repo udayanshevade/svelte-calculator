@@ -13,7 +13,7 @@ const applyInputs = (inputs) => {
 
 describe('Calculator', () => {
   // list of all button config objects
-  const buttonsData = config.flatMap((rowConfig) => rowConfig);
+  const buttonsData = config.flatMap(({ config: rowConfig }) => rowConfig);
 
   it('renders correctly', () => {
     render(Calculator);
@@ -22,7 +22,7 @@ describe('Calculator', () => {
     expect(display).toBeInTheDocument();
 
     const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(buttonsData.length);
+    expect(buttons).toHaveLength(buttonsData.flatMap((x) => x).length);
     buttons.forEach((button, i) => {
       const { text, title, value } = buttonsData[i];
       expect(button).toHaveTextContent(text);
