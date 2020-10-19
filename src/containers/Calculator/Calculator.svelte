@@ -154,6 +154,9 @@
     const lastOperationIsAnOperator = isOperator(lastOperation);
     const secondLastOperationIsAnOperator = isOperator(secondLastOperation);
     const hasComputedResult = secondLastOperation === '=';
+    const newOperationIsSubtract = newOperation === '-';
+    const lastOperationIsSubtract = lastOperation === '-';
+    const lastOperationIsAdd = lastOperation === '+';
 
     if (hasComputedResult) {
       // start new stack with the result
@@ -168,17 +171,17 @@
     }
 
     if (lastOperationIsAnOperator) {
-      if (newOperation === '-' && lastOperation === '-') {
+      if (newOperationIsSubtract && lastOperationIsSubtract) {
         // convert two consecutive '-' operators to '+'
         // e.g. [1, '-'] --> [1, '+']
         stack[stack.length - 1] = '+';
-      } else if (newOperation === '-' && lastOperation === '+') {
+      } else if (newOperationIsSubtract && lastOperationIsAdd) {
         // e.g. [1, '+'] --> [1, '-']
         stack[stack.length - 1] = '-';
-      } else if (newOperation === '-') {
+      } else if (newOperationIsSubtract) {
         // e.g. [1] --> [1, '-']
         stack = [...stack, newOperation];
-      } else if (lastOperation === '-' && secondLastOperationIsAnOperator) {
+      } else if (lastOperationIsSubtract && secondLastOperationIsAnOperator) {
         // if lastOperation is '-' and is preceded by another operator
         // overwrite both with the new operator
         // e.g. [123, '/', '-'] --> [123, '*']
@@ -281,6 +284,7 @@
   .calculator-inner {
     border-radius: 1rem;
     border: 1px solid #222;
+    width: 100%;
   }
   .row {
     display: grid;

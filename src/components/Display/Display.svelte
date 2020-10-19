@@ -6,7 +6,8 @@
   .display-container {
     border-top-left-radius: 1rem;
     border-top-right-radius: 1rem;
-    height: 6rem;
+    min-height: 6rem;
+    max-width: 100%;
     border-bottom: 1px solid #222;
     display: flex;
     align-items: flex-end;
@@ -18,6 +19,7 @@
     font-size: 1.6rem;
     color: #fff;
     text-align: right;
+    width: 100%;
   }
 </style>
 
