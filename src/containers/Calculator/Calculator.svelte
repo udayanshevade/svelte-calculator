@@ -9,45 +9,45 @@
   };
 
   export const config: ButtonConfig[][] = [
-    [{ id: "clear", title: "Clear", text: "AC", value: "clear" }],
+    [{ id: 'clear', title: 'Clear', text: 'AC', value: 'clear' }],
     [
-      { id: "seven", title: "Seven", text: "7", value: 7 },
-      { id: "eight", title: "Eight", text: "8", value: 8 },
-      { id: "nine", title: "Nine", text: "9", value: 9 },
-      { id: "divide", title: "Divide", text: "/", value: "/" },
+      { id: 'seven', title: 'Seven', text: '7', value: 7 },
+      { id: 'eight', title: 'Eight', text: '8', value: 8 },
+      { id: 'nine', title: 'Nine', text: '9', value: 9 },
+      { id: 'divide', title: 'Divide', text: '/', value: '/' },
     ],
     [
-      { id: "four", title: "Four", text: "4", value: 4 },
-      { id: "five", title: "Five", text: "5", value: 5 },
-      { id: "six", title: "Six", text: "6", value: 6 },
-      { id: "multiply", title: "Multiply", text: "*", value: "*" },
+      { id: 'four', title: 'Four', text: '4', value: 4 },
+      { id: 'five', title: 'Five', text: '5', value: 5 },
+      { id: 'six', title: 'Six', text: '6', value: 6 },
+      { id: 'multiply', title: 'Multiply', text: '*', value: '*' },
     ],
     [
-      { id: "one", title: "One", text: "1", value: 1 },
-      { id: "two", title: "Two", text: "2", value: 2 },
-      { id: "three", title: "Three", text: "3", value: 3 },
-      { id: "subtract", title: "Subtract", text: "-", value: "-" },
+      { id: 'one', title: 'One', text: '1', value: 1 },
+      { id: 'two', title: 'Two', text: '2', value: 2 },
+      { id: 'three', title: 'Three', text: '3', value: 3 },
+      { id: 'subtract', title: 'Subtract', text: '-', value: '-' },
     ],
     [
-      { id: "zero", title: "Zero", text: "0", value: 0 },
-      { id: "decimal", title: "Decimal", text: ".", value: "." },
+      { id: 'zero', title: 'Zero', text: '0', value: 0 },
+      { id: 'decimal', title: 'Decimal', text: '.', value: '.' },
       {
-        id: "equals",
-        title: "Equals",
-        text: "=",
-        value: "=",
-        className: "button--equals",
+        id: 'equals',
+        title: 'Equals',
+        text: '=',
+        value: '=',
+        className: 'button--equals',
       },
-      { id: "add", title: "Add", text: "+", value: "+" },
+      { id: 'add', title: 'Add', text: '+', value: '+' },
     ],
   ];
 
   // operation handlers
   export const operationHandlers = {
-    "+": (a: number, b: number): number => a + b,
-    "-": (a: number, b: number): number => a - b,
-    "*": (a: number, b: number): number => a * b,
-    "/": (a: number, b: number): number => a / b,
+    '+': (a: number, b: number): number => a + b,
+    '-': (a: number, b: number): number => a - b,
+    '*': (a: number, b: number): number => a * b,
+    '/': (a: number, b: number): number => a / b,
   };
 
   const toFixedDigits = 10;
@@ -68,14 +68,14 @@
   };
 
   const getDisplayValue = (stack: Operation[]): string => {
-    if (!stack.length) return "0";
-    return stack.join(" ");
+    if (!stack.length) return '0';
+    return stack.join(' ');
   };
 
   // utils
-  const isNumber = (val: Operation): val is number => typeof val === "number";
+  const isNumber = (val: Operation): val is number => typeof val === 'number';
   const isValidNumber = (val: number): boolean => !isNaN(val);
-  const isString = (val: Operation): val is string => typeof val === "string";
+  const isString = (val: Operation): val is string => typeof val === 'string';
   const suffix = (prevVal: Operation, newVal: Operation): string => {
     return `${prevVal}${newVal}`;
   };
@@ -83,21 +83,21 @@
     const updatedNum = suffix(prevVal, newVal);
     return Number(updatedNum);
   };
-  const suffixDecimal = (prevVal: number, newVal: "."): string => {
+  const suffixDecimal = (prevVal: number, newVal: '.'): string => {
     return suffix(prevVal, newVal);
   };
 </script>
 
 <script lang="ts">
-  import Display from "../../components/Display/Display.svelte";
-  import Button from "../../components/Button/Button.svelte";
+  import Display from '../../components/Display/Display.svelte';
+  import Button from '../../components/Button/Button.svelte';
 
   let stack: Operation[] = [];
 
   $: displayValue = getDisplayValue(stack);
 
   const handleButtonClick = (newOperation: Operation) => {
-    if (newOperation === "clear") {
+    if (newOperation === 'clear') {
       stack = [];
       return;
     }
@@ -135,7 +135,7 @@
       // EDGE CASE: ignore consecutive 0's in a new numeric operation
       if (lastOperation === 0 && newOperation === 0) return;
       stack[stack.length - 1] = suffixNums(lastOperation, newOperation);
-    } else if (isNumber(lastOperation) && newOperation === ".") {
+    } else if (isNumber(lastOperation) && newOperation === '.') {
       // noop if the lastOperation is already a decimal
       // e.g. [12.34] --> [12.34] (no change)
       if (Math.round(lastOperation) !== lastOperation) return;
@@ -145,12 +145,12 @@
       let suffixToAppend: string;
       // EDGE CASE: value being converted to decimal is -0
       if (Object.is(lastOperation, -0)) {
-        suffixToAppend = suffix("-0", newOperation);
+        suffixToAppend = suffix('-0', newOperation);
       } else {
         suffixToAppend = suffixDecimal(lastOperation, newOperation);
       }
       stack[stack.length - 1] = suffixToAppend;
-    } else if (isString(lastOperation) && newOperation === ".") {
+    } else if (isString(lastOperation) && newOperation === '.') {
       // EDGE CASE: lastOperation is a string decimal with a trailing '.'
       // and newOperation is another decimal point
       // e.g. ['12.'] --> ['12.'] (no change)
@@ -175,8 +175,8 @@
         }
         stack[stack.length - 1] = suffixToAppend;
       } else if (
-        lastOperation === "-" &&
-        typeof operationHandlers[secondLastOperation] === "function"
+        lastOperation === '-' &&
+        typeof operationHandlers[secondLastOperation] === 'function'
       ) {
         stack[stack.length - 1] = Number(suffix(lastOperation, newOperation));
       } else {
@@ -188,12 +188,12 @@
     } else if (isString(lastOperation) && isString(newOperation)) {
       // EDGE CASE: if newOperation is '-', accommodate it
       // e.g. ['1', '/'] --> ['1', '/', '-']
-      if (newOperation === "-") {
+      if (newOperation === '-') {
         stack = [...stack, newOperation];
       } else if (
-        lastOperation === "-" &&
-        typeof operationHandlers[secondLastOperation] === "function" &&
-        typeof operationHandlers[newOperation] === "function"
+        lastOperation === '-' &&
+        typeof operationHandlers[secondLastOperation] === 'function' &&
+        typeof operationHandlers[newOperation] === 'function'
       ) {
         // EDGE CASE: if lastOperation was '-' and secondLastOperation was also an operator,
         // and the new operation is also an operator

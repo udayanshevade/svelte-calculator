@@ -8,7 +8,7 @@ const mockProps = {
   title: 'submit',
   value: 'foo',
   text: 'submit',
-  onClick: jest.fn()
+  onClick: jest.fn(),
 };
 
 describe('Button', () => {

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Calculator from './containers/Calculator/Calculator.svelte';
+  import Calculator from './containers/Calculator/Calculator.svelte';
 </script>
 
 <main>
-	<Calculator />
+  <Calculator />
 </main>

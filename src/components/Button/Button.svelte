@@ -7,12 +7,6 @@
   export let onClick: (e: MouseEvent) => void | Promise<void>;
 </script>
 
-<button
-  id={id}
-  class={className}
-  title={title}
-  value={value}
-  on:click={onClick}
->
+<button {id} class={className} {title} {value} on:click={onClick}>
   {text}
 </button>

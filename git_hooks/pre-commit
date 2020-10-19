@@ -3,5 +3,6 @@
 set -e # stop on error
 echo "Running pre-commit hook"
 
+npm run lint:fix
 npm run validate
 npm run test

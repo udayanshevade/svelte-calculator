@@ -3,7 +3,5 @@
 </script>
 
 <section class="display-container" role="region">
-  <div class="display">
-    {displayValue}
-  </div>
+  <div class="display">{displayValue}</div>
 </section>

@@ -129,8 +129,8 @@ describe('Calculator', () => {
         ['+'],
         ['2', '0', '0'],
         ['-'],
-        ['0', '0', '.', '0', '0', '2']
-      ].flatMap(x => x);
+        ['0', '0', '.', '0', '0', '2'],
+      ].flatMap((x) => x);
       const output = '0 + 200 - 0.002';
       applyInputs(inputs);
       await waitFor(() => expect(display).toHaveTextContent(output));
@@ -151,7 +151,7 @@ describe('Calculator', () => {
         ['+'],
         ['5', '6', '.'],
         ['='],
-      ].flatMap(x => x);
+      ].flatMap((x) => x);
       const output = '123 * -0.4 + 19 / 43 + 56. = 55.2976744186';
       applyInputs(inputs);
       await waitFor(() => expect(display).toHaveTextContent(output));
@@ -167,8 +167,8 @@ describe('Calculator', () => {
           ['*'],
           ['-', '0', '.', '4'],
           ['='],
-          ['5']
-        ].flatMap(x => x);
+          ['5'],
+        ].flatMap((x) => x);
         const output = '5';
         applyInputs(inputs);
         await waitFor(() => expect(display).toHaveTextContent(output));
@@ -183,8 +183,8 @@ describe('Calculator', () => {
           ['*'],
           ['-', '0', '.', '4'],
           ['='],
-          ['/']
-        ].flatMap(x => x);
+          ['/'],
+        ].flatMap((x) => x);
         const output = '-49.2 /';
         applyInputs(inputs);
         await waitFor(() => expect(display).toHaveTextContent(output));
