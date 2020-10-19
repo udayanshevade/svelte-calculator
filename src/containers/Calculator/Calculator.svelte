@@ -1,11 +1,11 @@
 <script lang="ts" context="module">
   type Operation = number | string;
   type ButtonConfig = {
-    id: string,
-    title: string,
-    text: string,
-    value: number | string,
-    className?: string
+    id: string;
+    title: string;
+    text: string;
+    value: number | string;
+    className?: string;
   };
 
   export const config: ButtonConfig[][] = [
@@ -44,10 +44,10 @@
 
   // operation handlers
   export const operationHandlers = {
-    '+': (a: number, b: number): number => a + b,
-    '-': (a: number, b: number): number => a - b,
-    '*': (a: number, b: number): number => a * b,
-    '/': (a: number, b: number): number => a / b,
+    "+": (a: number, b: number): number => a + b,
+    "-": (a: number, b: number): number => a - b,
+    "*": (a: number, b: number): number => a * b,
+    "/": (a: number, b: number): number => a / b,
   };
 
   const toFixedDigits = 10;
@@ -67,6 +67,11 @@
     return Number(output.toFixed(toFixedDigits));
   };
 
+  const getDisplayValue = (stack: Operation[]): string => {
+    if (!stack.length) return "0";
+    return stack.join(" ");
+  };
+
   // utils
   const isNumber = (val: Operation): val is number => typeof val === "number";
   const isValidNumber = (val: number): boolean => !isNaN(val);
@@ -78,7 +83,7 @@
     const updatedNum = suffix(prevVal, newVal);
     return Number(updatedNum);
   };
-  const suffixDecimal = (prevVal: number, newVal: '.'): string => {
+  const suffixDecimal = (prevVal: number, newVal: "."): string => {
     return suffix(prevVal, newVal);
   };
 </script>
@@ -89,10 +94,9 @@
 
   let stack: Operation[] = [];
 
-  $: displayValue = stack.join(" ") || '0';
+  $: displayValue = getDisplayValue(stack);
 
   const handleButtonClick = (newOperation: Operation) => {
-    // TODO: handle button click
     if (newOperation === "clear") {
       stack = [];
       return;
@@ -107,7 +111,27 @@
 
     const lastOperation = stack[stack.length - 1];
     const secondLastOperation = stack[stack.length - 2];
-    if (isNumber(lastOperation) && isNumber(newOperation)) {
+
+    if (newOperation === '=') {
+      // ignore duplicate operation
+      // e.g. [1, '+', 1, '=', 2] --> [1, '+', 1, '=', 2] (no change)
+      if (secondLastOperation === '=') return;
+      // compute updated result
+      const result = computeValue(stack);
+      // e.g. [2, '*', 6] --> [2, '*', 6, '=', 12]
+      stack[stack.length] = '=';
+      stack[stack.length + 1] = result;
+    } else if (secondLastOperation === '=') {
+      if (isNumber(newOperation)) {
+        // start a new stack with a new number
+        // e.g. [12, '/', 4, '=', 3] --> [5]
+        stack = [newOperation];
+      } else {
+        // or start a new stack with the result
+        // e.g. [3, '*', 4, '=', 12] --> [12, '+']
+        stack = [lastOperation, newOperation];
+      }
+    } else if (isNumber(lastOperation) && isNumber(newOperation)) {
       // EDGE CASE: ignore consecutive 0's in a new numeric operation
       if (lastOperation === 0 && newOperation === 0) return;
       stack[stack.length - 1] = suffixNums(lastOperation, newOperation);
@@ -118,7 +142,14 @@
       // else convert it to a decimal value
       // e.g. [12] --> ['12.']
       // temporarily converts to a string to allow a trailing decimal point
-      stack[stack.length - 1] = suffixDecimal(lastOperation, newOperation);
+      let suffixToAppend: string;
+      // EDGE CASE: value being converted to decimal is -0
+      if (Object.is(lastOperation, -0)) {
+        suffixToAppend = suffix("-0", newOperation);
+      } else {
+        suffixToAppend = suffixDecimal(lastOperation, newOperation);
+      }
+      stack[stack.length - 1] = suffixToAppend;
     } else if (isString(lastOperation) && newOperation === ".") {
       // EDGE CASE: lastOperation is a string decimal with a trailing '.'
       // and newOperation is another decimal point
@@ -135,15 +166,17 @@
       if (isValidNumber(asNumber)) {
         // if the new operation is a 0, do not coerce to a number yet
         // it still needs to be a string, or it will be reduced to 0
+        let suffixToAppend: string | number;
         if (newOperation === 0) {
-          stack[stack.length - 1] = suffix(lastOperation, newOperation);
+          suffixToAppend = suffix(lastOperation, newOperation);
         } else {
           // if it is non-zero, the decimal can be coerced to a number
-          stack[stack.length - 1] = Number(suffix(lastOperation, newOperation));
+          suffixToAppend = Number(suffix(lastOperation, newOperation));
         }
+        stack[stack.length - 1] = suffixToAppend;
       } else if (
-        lastOperation === '-' &&
-        typeof operationHandlers[secondLastOperation] === 'function'
+        lastOperation === "-" &&
+        typeof operationHandlers[secondLastOperation] === "function"
       ) {
         stack[stack.length - 1] = Number(suffix(lastOperation, newOperation));
       } else {
@@ -155,12 +188,12 @@
     } else if (isString(lastOperation) && isString(newOperation)) {
       // EDGE CASE: if newOperation is '-', accommodate it
       // e.g. ['1', '/'] --> ['1', '/', '-']
-      if (newOperation === '-') {
+      if (newOperation === "-") {
         stack = [...stack, newOperation];
       } else if (
-        lastOperation === '-' &&
-        typeof operationHandlers[secondLastOperation] === 'function' &&
-        typeof operationHandlers[newOperation] === 'function'
+        lastOperation === "-" &&
+        typeof operationHandlers[secondLastOperation] === "function" &&
+        typeof operationHandlers[newOperation] === "function"
       ) {
         // EDGE CASE: if lastOperation was '-' and secondLastOperation was also an operator,
         // and the new operation is also an operator

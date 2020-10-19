@@ -1,21 +1,18 @@
 import { render, screen, waitFor } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import Calculator, {
-  config,
-  computeValue
-} from './Calculator.svelte';
+import Calculator, { config, computeValue } from './Calculator.svelte';
 
 // inputs should specify the text of the pressed button, not its value
 // e.g. ['1', '2', 'AC'] not [1, 2, 'clear']
-const applyInputs = inputs => {
-  inputs.forEach(input => {
+const applyInputs = (inputs) => {
+  inputs.forEach((input) => {
     userEvent.click(screen.getByText(input, { selector: 'button' }));
   });
 };
 
 describe('Calculator', () => {
   // list of all button config objects
-  const buttonsData = config.flatMap(rowConfig => rowConfig);
+  const buttonsData = config.flatMap((rowConfig) => rowConfig);
 
   it('renders correctly', () => {
     render(Calculator);
@@ -126,12 +123,73 @@ describe('Calculator', () => {
     it('ignores consecutive 0s at the start of a value but not otherwise', async () => {
       render(Calculator);
       const display = screen.getByRole('region');
-      const inputs = ['0', '0', '+', '2', '0', '0', '-', '0', '0', '.', '0', '0', '2'];
+      // note: formatting as list of lists for readability
+      const inputs = [
+        ['0', '0'],
+        ['+'],
+        ['2', '0', '0'],
+        ['-'],
+        ['0', '0', '.', '0', '0', '2']
+      ].flatMap(x => x);
       const output = '0 + 200 - 0.002';
       applyInputs(inputs);
       await waitFor(() => expect(display).toHaveTextContent(output));
     });
 
+    it('renders the result if the equals sign is clicked', async () => {
+      render(Calculator);
+      const display = screen.getByRole('region');
+      // note: formatting as list of lists for readability
+      const inputs = [
+        ['1', '2', '3'],
+        ['*'],
+        ['-', '0', '.', '4'],
+        ['+'],
+        ['1', '9'],
+        ['/'],
+        ['4', '3'],
+        ['+'],
+        ['5', '6', '.'],
+        ['='],
+      ].flatMap(x => x);
+      const output = '123 * -0.4 + 19 / 43 + 56. = 55.2976744186';
+      applyInputs(inputs);
+      await waitFor(() => expect(display).toHaveTextContent(output));
+    });
+
+    describe('flushes the stack once a final value is computed', () => {
+      it('with a new number', async () => {
+        render(Calculator);
+        const display = screen.getByRole('region');
+        // note: formatting as list of lists for readability
+        const inputs = [
+          ['1', '2', '3'],
+          ['*'],
+          ['-', '0', '.', '4'],
+          ['='],
+          ['5']
+        ].flatMap(x => x);
+        const output = '5';
+        applyInputs(inputs);
+        await waitFor(() => expect(display).toHaveTextContent(output));
+      });
+
+      it('with an operator', async () => {
+        render(Calculator);
+        const display = screen.getByRole('region');
+        // note: formatting as list of lists for readability
+        const inputs = [
+          ['1', '2', '3'],
+          ['*'],
+          ['-', '0', '.', '4'],
+          ['='],
+          ['/']
+        ].flatMap(x => x);
+        const output = '-49.2 /';
+        applyInputs(inputs);
+        await waitFor(() => expect(display).toHaveTextContent(output));
+      });
+    });
   });
 
   it('method evaluates a stack output correctly', () => {
