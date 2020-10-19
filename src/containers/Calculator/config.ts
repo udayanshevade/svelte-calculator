@@ -14,7 +14,7 @@ type RowConfig = {
 export const config: RowConfig[] = [
   {
     className: 'row--full',
-    config: [{ id: 'clear', title: 'Clear', text: 'AC', value: 'clear' }]
+    config: [{ id: 'clear', title: 'Clear', text: 'AC', value: 'clear' }],
   },
   {
     config: [
@@ -53,5 +53,5 @@ export const config: RowConfig[] = [
       },
       { id: 'add', title: 'Add', text: '+', value: '+' },
     ],
-  }
+  },
 ];

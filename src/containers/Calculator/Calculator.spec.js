@@ -222,7 +222,7 @@ describe('Calculator', () => {
       render(Calculator);
       const display = screen.getByRole('region');
       const button = screen.getByText('5', { selector: 'button' });
-      userEvent.type(display, '12345');
+      userEvent.type(display, '5');
       await waitFor(() =>
         expect(button).not.toHaveStyle({ background: '#333' })
       );

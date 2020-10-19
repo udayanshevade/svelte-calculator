@@ -38,5 +38,8 @@
   "dependencies": {
     "classnames": "^2.2.6",
     "sirv-cli": "^1.0.0"
+  },
+  "prettier": {
+    "singleQuote": true
   }
 }

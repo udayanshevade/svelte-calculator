@@ -169,21 +169,19 @@
   };
 
   const handleKeydown = (e: KeyboardEvent) => {
-    const keyNum = Number(e.key);
-    if (isNaN(keyNum)) {
-      if (/[\/\*\-\+\=]/.test(e.key)) {
-        activeKey = e.key;
-        handleButtonClick(e.key);
-      } else if (e.key === 'Enter') {
-        activeKey = '=';
-        handleButtonClick('=');
-      } else if (e.key === 'Escape') {
-        activeKey = 'clear';
-        handleButtonClick('clear');
-      }
-    } else {
+    if (/[0-9]/.test(e.key)) {
+      const keyNum = Number(e.key);
       activeKey = keyNum;
       handleButtonClick(keyNum);
+    } else if (/[\/\*\-\+\=]/.test(e.key)) {
+      activeKey = e.key;
+      handleButtonClick(e.key);
+    } else if (e.key === 'Enter') {
+      activeKey = '=';
+      handleButtonClick('=');
+    } else if (e.key === 'Escape') {
+      activeKey = 'clear';
+      handleButtonClick('clear');
     }
   };
 </script>

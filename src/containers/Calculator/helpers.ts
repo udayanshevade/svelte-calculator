@@ -9,10 +9,12 @@ export const operationHandlers = {
 };
 
 // utils
-export const isNumber = (val: Operation): val is number => typeof val === 'number';
+export const isNumber = (val: Operation): val is number =>
+  typeof val === 'number';
 export const isValidNumber = (val: number): boolean => !isNaN(val);
 
-export const isString = (val: Operation): val is string => typeof val === 'string';
+export const isString = (val: Operation): val is string =>
+  typeof val === 'string';
 
 export const suffix = (prevVal: Operation, newVal: Operation): string => {
   return `${prevVal}${newVal}`;
