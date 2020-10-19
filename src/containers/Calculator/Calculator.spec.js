@@ -5,9 +5,11 @@ import Calculator, {
   computeValue
 } from './Calculator.svelte';
 
+// inputs should specify the text of the pressed button, not its value
+// e.g. ['1', '2', 'AC'] not [1, 2, 'clear']
 const applyInputs = inputs => {
   inputs.forEach(input => {
-    userEvent.click(screen.getByText(input));
+    userEvent.click(screen.getByText(input, { selector: 'button' }));
   });
 };
 
@@ -120,6 +122,16 @@ describe('Calculator', () => {
       applyInputs(inputs);
       await waitFor(() => expect(display).toHaveTextContent(output));
     });
+
+    it('ignores consecutive 0s at the start of a value but not otherwise', async () => {
+      render(Calculator);
+      const display = screen.getByRole('region');
+      const inputs = ['0', '0', '+', '2', '0', '0', '-', '0', '0', '.', '0', '0', '2'];
+      const output = '0 + 200 - 0.002';
+      applyInputs(inputs);
+      await waitFor(() => expect(display).toHaveTextContent(output));
+    });
+
   });
 
   it('method evaluates a stack output correctly', () => {

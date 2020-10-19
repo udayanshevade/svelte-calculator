@@ -108,6 +108,8 @@
     const lastOperation = stack[stack.length - 1];
     const secondLastOperation = stack[stack.length - 2];
     if (isNumber(lastOperation) && isNumber(newOperation)) {
+      // EDGE CASE: ignore consecutive 0's in a new numeric operation
+      if (lastOperation === 0 && newOperation === 0) return;
       stack[stack.length - 1] = suffixNums(lastOperation, newOperation);
     } else if (isNumber(lastOperation) && newOperation === ".") {
       // noop if the lastOperation is already a decimal
@@ -131,7 +133,14 @@
       // e.g. ['12.'] --> [12.3]
       const asNumber = Number(lastOperation);
       if (isValidNumber(asNumber)) {
-        stack[stack.length - 1] = Number(suffix(lastOperation, newOperation));
+        // if the new operation is a 0, do not coerce to a number yet
+        // it still needs to be a string, or it will be reduced to 0
+        if (newOperation === 0) {
+          stack[stack.length - 1] = suffix(lastOperation, newOperation);
+        } else {
+          // if it is non-zero, the decimal can be coerced to a number
+          stack[stack.length - 1] = Number(suffix(lastOperation, newOperation));
+        }
       } else if (
         lastOperation === '-' &&
         typeof operationHandlers[secondLastOperation] === 'function'
