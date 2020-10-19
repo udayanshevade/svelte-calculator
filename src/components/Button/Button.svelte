@@ -1,5 +1,5 @@
 <script lang="ts">
-  import classnames from "classnames";
+  import classnames from 'classnames';
   export let text: string;
   export let id: string;
   export let className: string;
