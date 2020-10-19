@@ -1,55 +1,4 @@
 <script lang="ts" context="module">
-  type Operation = number | string;
-  type ButtonConfig = {
-    id: string;
-    title: string;
-    text: string;
-    value: number | string;
-    className?: string;
-  };
-
-  export const config: ButtonConfig[][] = [
-    [{ id: 'clear', title: 'Clear', text: 'AC', value: 'clear' }],
-    [
-      { id: 'seven', title: 'Seven', text: '7', value: 7 },
-      { id: 'eight', title: 'Eight', text: '8', value: 8 },
-      { id: 'nine', title: 'Nine', text: '9', value: 9 },
-      { id: 'divide', title: 'Divide', text: '/', value: '/' },
-    ],
-    [
-      { id: 'four', title: 'Four', text: '4', value: 4 },
-      { id: 'five', title: 'Five', text: '5', value: 5 },
-      { id: 'six', title: 'Six', text: '6', value: 6 },
-      { id: 'multiply', title: 'Multiply', text: '*', value: '*' },
-    ],
-    [
-      { id: 'one', title: 'One', text: '1', value: 1 },
-      { id: 'two', title: 'Two', text: '2', value: 2 },
-      { id: 'three', title: 'Three', text: '3', value: 3 },
-      { id: 'subtract', title: 'Subtract', text: '-', value: '-' },
-    ],
-    [
-      { id: 'zero', title: 'Zero', text: '0', value: 0 },
-      { id: 'decimal', title: 'Decimal', text: '.', value: '.' },
-      {
-        id: 'equals',
-        title: 'Equals',
-        text: '=',
-        value: '=',
-        className: 'button--equals',
-      },
-      { id: 'add', title: 'Add', text: '+', value: '+' },
-    ],
-  ];
-
-  // operation handlers
-  export const operationHandlers = {
-    '+': (a: number, b: number): number => a + b,
-    '-': (a: number, b: number): number => a - b,
-    '*': (a: number, b: number): number => a * b,
-    '/': (a: number, b: number): number => a / b,
-  };
-
   const toFixedDigits = 10;
   // reduce the array by immediate execution
   // TODO: use formula logic
@@ -67,30 +16,26 @@
     return Number(output.toFixed(toFixedDigits));
   };
 
-  const getDisplayValue = (stack: Operation[]): string => {
+  export const getDisplayValue = (stack: Operation[]): string => {
     if (!stack.length) return '0';
     return stack.join(' ');
-  };
-
-  // utils
-  const isNumber = (val: Operation): val is number => typeof val === 'number';
-  const isValidNumber = (val: number): boolean => !isNaN(val);
-  const isString = (val: Operation): val is string => typeof val === 'string';
-  const suffix = (prevVal: Operation, newVal: Operation): string => {
-    return `${prevVal}${newVal}`;
-  };
-  const suffixNums = (prevVal: number, newVal: number): number => {
-    const updatedNum = suffix(prevVal, newVal);
-    return Number(updatedNum);
-  };
-  const suffixDecimal = (prevVal: number, newVal: '.'): string => {
-    return suffix(prevVal, newVal);
   };
 </script>
 
 <script lang="ts">
   import Display from '../../components/Display/Display.svelte';
   import Button from '../../components/Button/Button.svelte';
+  import { config } from './config';
+  import {
+    isNumber,
+    isValidNumber,
+    isString,
+    suffix,
+    suffixNumbers,
+    suffixDecimal,
+    operationHandlers,
+    Operation,
+  } from './helpers';
 
   let stack: Operation[] = [];
 
@@ -134,7 +79,7 @@
     } else if (isNumber(lastOperation) && isNumber(newOperation)) {
       // EDGE CASE: ignore consecutive 0's in a new numeric operation
       if (lastOperation === 0 && newOperation === 0) return;
-      stack[stack.length - 1] = suffixNums(lastOperation, newOperation);
+      stack[stack.length - 1] = suffixNumbers(lastOperation, newOperation);
     } else if (isNumber(lastOperation) && newOperation === '.') {
       // noop if the lastOperation is already a decimal
       // e.g. [12.34] --> [12.34] (no change)

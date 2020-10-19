@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import Calculator, { config, computeValue } from './Calculator.svelte';
+import { config } from './config';
+import Calculator, { computeValue } from './Calculator.svelte';
 
 // inputs should specify the text of the pressed button, not its value
 // e.g. ['1', '2', 'AC'] not [1, 2, 'clear']
