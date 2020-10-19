@@ -2,6 +2,12 @@ import { render, screen, waitFor } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import Calculator, { config } from './Calculator.svelte';
 
+const applyInputs = inputs => {
+  inputs.forEach(input => {
+    userEvent.click(screen.getByText(input));
+  });
+};
+
 describe('Calculator', () => {
   // list of all button config objects
   const buttonsData = config.flatMap(rowConfig => rowConfig);
@@ -27,17 +33,13 @@ describe('Calculator', () => {
       render(Calculator);
       const display = screen.getByRole('region');
 
-      const buttonOne = screen.getByText('1');
       // click button 2 times, i.e. produce display '11'
-      userEvent.click(buttonOne);
-      userEvent.click(buttonOne);
+      applyInputs(['1', '1']);
 
       await waitFor(() => expect(display).toHaveTextContent('11'));
 
-      const buttonTwo = screen.getByText('2');
       // click button 2 times, i.e. produce display '22'
-      userEvent.click(buttonTwo);
-      userEvent.click(buttonTwo);
+      applyInputs(['2', '2']);
 
       await waitFor(() => expect(display).toHaveTextContent('1122'));
     });
@@ -48,14 +50,11 @@ describe('Calculator', () => {
 
       const buttonOne = screen.getByText('1');
       // click button 5 times, i.e. produce display '11111'
-      new Array(5).fill(null).forEach(() => {
-        userEvent.click(buttonOne);
-      });
+      applyInputs(new Array(5).fill('1'));
 
       await waitFor(() => expect(display).toHaveTextContent('11111'));
 
-      const buttonClear = screen.getByText('AC');
-      userEvent.click(buttonClear);
+      applyInputs(['AC']);
 
       await waitFor(() => expect(display).toHaveTextContent(''));
     });
@@ -64,22 +63,44 @@ describe('Calculator', () => {
       render(Calculator);
       const display = screen.getByRole('region');
 
-      const inputs = [
-        '1',
-        '+',
-        '2',
-        '*',
-        '3',
-        '-',
-        '4',
-        '/',
-        '5'
-      ];
+      const inputs = ['1', '+', '2', '*', '3', '-', '4', '/', '5'];
       const output = '1 + 2 * 3 - 4 / 5';
-      inputs.forEach(input => {
-        userEvent.click(screen.getByText(input));
-      });
+      applyInputs(inputs);
       await waitFor(() => expect(display).toHaveTextContent(output));
+    });
+
+    describe('when the user adds a decimal', () => {
+      it('converts a number to a decimal', async () => {
+        render(Calculator);
+        const display = screen.getByRole('region');
+
+        const inputs = ['1', '2', '.', '3', '4'];
+        const output = '12.34';
+        applyInputs(inputs);
+        await waitFor(() => expect(display).toHaveTextContent(output));
+      });
+
+      describe('does nothing if the number is already a decimal', () => {
+        it('with a trailing decimal point', async () => {
+          render(Calculator);
+          const display = screen.getByRole('region');
+
+          const inputs = ['1', '2', '.', '.'];
+          const output = '12.';
+          applyInputs(inputs);
+          await waitFor(() => expect(display).toHaveTextContent(output));
+        });
+
+        it('with a decimal point in the middle of the number', async () => {
+          render(Calculator);
+          const display = screen.getByRole('region');
+
+          const inputs = ['1', '2', '.', '3', '4', '.'];
+          const output = '12.34';
+          applyInputs(inputs);
+          await waitFor(() => expect(display).toHaveTextContent(output));
+        });
+      });
     });
   });
 });
