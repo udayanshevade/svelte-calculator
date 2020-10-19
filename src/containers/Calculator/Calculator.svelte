@@ -258,6 +258,7 @@
 
     if (newOperation === '=') {
       handleEqualsOperation(newOperation);
+      return;
     }
 
     if (isDigit(newOperation)) {
