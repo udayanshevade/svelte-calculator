@@ -1,5 +1,6 @@
 <script lang="ts">
   export let displayValue = '';
+  export let warning = null;
 </script>
 
 <style>
@@ -12,8 +13,11 @@
     display: flex;
     align-items: flex-end;
     justify-content: flex-end;
-    padding: 0.25rem 0.5rem 0.25rem 0.25rem;
     overflow-y: auto;
+  }
+
+  .display-inner {
+    padding: 0.25rem 0.5rem 0.25rem 0.25rem;
   }
 
   .display {
@@ -26,5 +30,7 @@
 </style>
 
 <section class="display-container" role="region">
-  <div class="display">{displayValue}</div>
+  <div class="display-inner">
+    <div class="display">{warning || displayValue}</div>
+  </div>
 </section>

@@ -19,7 +19,14 @@
 
   export const getDisplayValue = (stack: Operation[]): string => {
     if (!stack.length) return '0';
-    return stack.join(' ');
+    return stack
+      .map((val) => {
+        if (isNumber(val)) {
+          return Math.min(val, Number.MAX_SAFE_INTEGER);
+        }
+        return val;
+      })
+      .join(' ');
   };
 </script>
 
@@ -45,6 +52,8 @@
   $: displayValue = getDisplayValue(stack);
 
   let activeKey: Operation = null;
+  let warning: string = null;
+
   let highlightedTimeoutId: number = null;
   const highlightedTimeout = 125;
   $: {
@@ -54,6 +63,18 @@
       }, highlightedTimeout);
     } else {
       clearTimeout(highlightedTimeoutId);
+    }
+  }
+
+  let warningTimeoutId: number = null;
+  const warningTimeout = 1500;
+  $: {
+    if (warning !== null) {
+      warningTimeoutId = setTimeout(() => {
+        warning = null;
+      }, warningTimeout);
+    } else {
+      clearTimeout(warningTimeoutId);
     }
   }
 
@@ -96,11 +117,13 @@
       if (lastOperation === 0 && newOperation === 0) return;
       // just merge consecutive numerical values otherwise
       // e.g. [20] --> [200]
-      // TODO: figure out why TS is complaining about newOperation despite type guard inside `isDigit`
-      stack[stack.length - 1] = mergeNumbers(
-        lastOperation,
-        Number(newOperation)
-      );
+      const newNum = mergeNumbers(lastOperation, Number(newOperation));
+      // ^ TODO: figure out why TS is complaining about newOperation despite type guard inside `isDigit`
+      const safeNum = Math.min(newNum, Number.MAX_SAFE_INTEGER);
+      stack[stack.length - 1] = safeNum;
+      if (safeNum === Number.MAX_SAFE_INTEGER) {
+        warning = 'Digit limit reached';
+      }
       return;
     }
 
@@ -233,6 +256,10 @@
       return;
     }
 
+    if (newOperation === '=') {
+      handleEqualsOperation(newOperation);
+    }
+
     if (isDigit(newOperation)) {
       handleDigitOperation(newOperation);
       return;
@@ -246,10 +273,6 @@
     if (isOperator(newOperation)) {
       handleOperatorOperation(newOperation);
       return;
-    }
-
-    if (newOperation === '=') {
-      handleEqualsOperation(newOperation);
     }
   };
 
@@ -313,7 +336,7 @@
 
 <div class="calculator">
   <div class="calculator-inner">
-    <Display {displayValue} />
+    <Display {displayValue} {warning} />
     {#each config as { className: rowClassName, config: rowConfig }}
       <div class={classnames('row', rowClassName)}>
         {#each rowConfig as { id, value, title, className, text } (id)}
