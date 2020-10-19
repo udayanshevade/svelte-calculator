@@ -106,6 +106,7 @@
     }
 
     const lastOperation = stack[stack.length - 1];
+    const secondLastOperation = stack[stack.length - 2];
     if (isNumber(lastOperation) && isNumber(newOperation)) {
       stack[stack.length - 1] = suffixNums(lastOperation, newOperation);
     } else if (isNumber(lastOperation) && newOperation === ".") {
@@ -131,6 +132,11 @@
       const asNumber = Number(lastOperation);
       if (isValidNumber(asNumber)) {
         stack[stack.length - 1] = Number(suffix(lastOperation, newOperation));
+      } else if (
+        lastOperation === '-' &&
+        typeof operationHandlers[secondLastOperation] === 'function'
+      ) {
+        stack[stack.length - 1] = Number(suffix(lastOperation, newOperation));
       } else {
         // else we're just adding a new number operation to the stack
         // after some other string operation
@@ -138,9 +144,24 @@
         stack = [...stack, newOperation];
       }
     } else if (isString(lastOperation) && isString(newOperation)) {
-      // simply overwrite that lastOperation with the newOperation,
-      // e.g. [123, '/'] --> [123, '*']
-      stack[stack.length - 1] = newOperation;
+      // EDGE CASE: if newOperation is '-', accommodate it
+      // e.g. ['1', '/'] --> ['1', '/', '-']
+      if (newOperation === '-') {
+        stack = [...stack, newOperation];
+      } else if (
+        lastOperation === '-' &&
+        typeof operationHandlers[secondLastOperation] === 'function' &&
+        typeof operationHandlers[newOperation] === 'function'
+      ) {
+        // EDGE CASE: if lastOperation was '-' and secondLastOperation was also an operator,
+        // and the new operation is also an operator
+        // overwrite the secondLastOperation as well
+        stack = [...stack.slice(0, stack.length - 2), newOperation];
+      } else {
+        // else simply overwrite that lastOperation with the newOperation,
+        // e.g. [123, '/'] --> [123, '*']
+        stack[stack.length - 1] = newOperation;
+      }
     } else {
       stack = [...stack, newOperation];
     }

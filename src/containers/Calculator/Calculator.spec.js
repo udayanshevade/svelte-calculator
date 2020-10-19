@@ -111,10 +111,19 @@ describe('Calculator', () => {
         });
       });
     });
+
+    it('handles a negative value', async () => {
+      render(Calculator);
+      const display = screen.getByRole('region');
+      const inputs = ['1', '+', '-', '2', '*', '3', '-', '4', '/', '5'];
+      const output = '1 + -2 * 3 - 4 / 5';
+      applyInputs(inputs);
+      await waitFor(() => expect(display).toHaveTextContent(output));
+    });
   });
 
   it('method evaluates a stack output correctly', () => {
-    const stack = [123, '*', 0.4, '+', 19, '/', 43, '+', '56.'];
-    expect(computeValue(stack)).toEqual(57.5860465116);
+    const stack = [123, '*', -0.4, '+', 19, '/', 43, '+', '56.'];
+    expect(computeValue(stack)).toEqual(55.2976744186);
   });
 });
