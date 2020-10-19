@@ -42,8 +42,34 @@
     ],
   ];
 
+  // operation handlers
+  export const operationHandlers = {
+    '+': (a: number, b: number): number => a + b,
+    '-': (a: number, b: number): number => a - b,
+    '*': (a: number, b: number): number => a * b,
+    '/': (a: number, b: number): number => a / b,
+  };
+
+  const toFixedDigits = 10;
+  // reduce the array by immediate execution
+  // TODO: use formula logic
+  export const computeValue = (stack: Operation[]): number => {
+    const output = stack.reduce((acc: number, next: Operation, i: number) => {
+      const asNumber = Number(next);
+      if (isValidNumber(asNumber)) {
+        if (i === 0) return asNumber;
+        const lastOperation = stack[i - 1];
+        return operationHandlers[lastOperation](acc, asNumber);
+      }
+      return acc;
+    }, 0);
+    // round to fixed number of digits
+    return Number(output.toFixed(toFixedDigits));
+  };
+
   // utils
   const isNumber = (val: Operation): val is number => typeof val === "number";
+  const isValidNumber = (val: number): boolean => !isNaN(val);
   const isString = (val: Operation): val is string => typeof val === "string";
   const suffix = (prevVal: Operation, newVal: Operation): string => {
     return `${prevVal}${newVal}`;
@@ -94,7 +120,7 @@
       // EDGE CASE: lastOperation is a string decimal with a trailing '.'
       // and newOperation is another decimal point
       // e.g. ['12.'] --> ['12.'] (no change)
-      if (!isNaN(Number(lastOperation))) return;
+      if (isValidNumber(Number(lastOperation))) return;
       // else append new decimal starting with automatic '0'
       // e.g. [12, '/'] --> [12, '/', '0.']
       stack = [...stack, suffixDecimal(0, newOperation)];
@@ -103,7 +129,7 @@
       // and needs to be continued with a numerical newOperation
       // e.g. ['12.'] --> [12.3]
       const asNumber = Number(lastOperation);
-      if (!isNaN(asNumber)) {
+      if (isValidNumber(asNumber)) {
         stack[stack.length - 1] = Number(suffix(lastOperation, newOperation));
       } else {
         // else we're just adding a new number operation to the stack

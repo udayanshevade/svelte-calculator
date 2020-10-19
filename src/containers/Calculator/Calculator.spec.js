@@ -1,6 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import Calculator, { config } from './Calculator.svelte';
+import Calculator, {
+  config,
+  computeValue
+} from './Calculator.svelte';
 
 const applyInputs = inputs => {
   inputs.forEach(input => {
@@ -108,5 +111,10 @@ describe('Calculator', () => {
         });
       });
     });
+  });
+
+  it('method evaluates a stack output correctly', () => {
+    const stack = [123, '*', 0.4, '+', 19, '/', 43, '+', '56.'];
+    expect(computeValue(stack)).toEqual(57.5860465116);
   });
 });
