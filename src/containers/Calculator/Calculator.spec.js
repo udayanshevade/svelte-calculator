@@ -116,7 +116,7 @@ describe('Calculator', () => {
       render(Calculator);
       const display = screen.getByRole('region');
       const inputs = ['1', '+', '-', '2', '*', '3', '-', '4', '/', '5'];
-      const output = '1 + -2 * 3 - 4 / 5';
+      const output = '1 - 2 * 3 - 4 / 5';
       applyInputs(inputs);
       await waitFor(() => expect(display).toHaveTextContent(output));
     });

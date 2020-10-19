@@ -30,10 +30,12 @@
   import { config } from './config';
   import {
     isNumber,
+    isDigit,
     isValidNumber,
     isString,
+    isOperator,
     suffix,
-    suffixNumbers,
+    mergeNumbers,
     suffixDecimal,
     operationHandlers,
   } from './helpers';
@@ -55,6 +57,166 @@
     }
   }
 
+  const handleDigitOperation = (newOperation: number) => {
+    const lastOperation = stack[stack.length - 1];
+    const secondLastOperation = stack[stack.length - 2];
+    const lastOperationIsANumber = isValidNumber(Number(lastOperation));
+    const lastOperationIsAnOperator = isOperator(lastOperation);
+    const lastOperationIsAString = isString(lastOperation);
+    const secondLastOperationIsAnOperator = isOperator(secondLastOperation);
+    const hasComputedResult = secondLastOperation === '=';
+
+    if (hasComputedResult) {
+      // start a new stack with a new number
+      // e.g. [12, '/', 4, '=', 3] --> [5]
+      stack = [newOperation];
+      return;
+    }
+
+    if (lastOperationIsANumber) {
+      // track temporary string decimal representations,
+      // which are useful for maintaining a trailing '.'
+      if (lastOperationIsAString) {
+        // if the new operation is 0, do not coerce the full value to a number yet.
+        // it still needs to be a string, or it will be pared down prematurely
+        let valueToAppend: string | number;
+        // e.g. ['123.'] --> ['123.0']
+        valueToAppend = suffix(lastOperation, newOperation);
+        if (newOperation > 0) {
+          // a non-zero value can be coerced to a number
+          // e.g. ['123.'] --> [123.4]
+          valueToAppend = Number(valueToAppend);
+        }
+        stack[stack.length - 1] = valueToAppend;
+        return;
+      }
+
+      // prevent consecutive 0 digits unless position is valid
+      // e.g. [0] --> [0] (no change)
+      if (lastOperation === 0 && newOperation === 0) return;
+      // just merge consecutive numerical values otherwise
+      // e.g. [20] --> [200]
+      // TODO: figure out why TS is complaining about newOperation despite type guard inside `isDigit`
+      stack[stack.length - 1] = mergeNumbers(
+        lastOperation,
+        Number(newOperation)
+      );
+      return;
+    }
+
+    if (lastOperationIsAnOperator) {
+      if (lastOperation === '-' && secondLastOperationIsAnOperator) {
+        // accommmodate '-' after another operator (for negative numbers)
+        // e.g. [12345, '/', '-'] --> [12345, '/', -3]
+        stack[stack.length - 1] = Number(suffix(lastOperation, newOperation));
+      } else {
+        // else just add the new number to the stack
+        // e.g. [12345, '/'] --> [12345, '/', 3]
+        stack = [...stack, newOperation];
+      }
+      return;
+    }
+  };
+
+  const handleDecimalOperation = (newOperation: '.') => {
+    const lastOperation = stack[stack.length - 1];
+    const lastOperationIsANumber = isValidNumber(Number(lastOperation));
+    const lastOperationIsAnOperator = isOperator(lastOperation);
+    if (lastOperationIsANumber) {
+      // ignore if the last number is already a decimal
+      // e.g. [12.34] --> [12.34] (no change)
+      if (Math.round(Number(lastOperation)) !== lastOperation) return;
+      // EDGE CASE: value being converted to decimal is -0,
+      // which otherwise gets coerced to '0'
+      if (Object.is(lastOperation, -0)) {
+        // so this retains the negative value
+        // e.g. [-0] --> ['-0.']
+        stack[stack.length - 1] = suffix('-0', newOperation);
+      } else {
+        // else we just string concatenate the decimal and the number
+        // e.g. [123] --> ['123.']
+        stack[stack.length - 1] = suffixDecimal(lastOperation, newOperation);
+      }
+      return;
+    }
+
+    if (lastOperationIsAnOperator) {
+      // e.g. [12, '/'] --> [12, '/', '0.']
+      stack = [...stack, suffixDecimal(0, newOperation)];
+      return;
+    }
+  };
+
+  const handleOperatorOperation = (newOperation: '+' | '-' | '/' | '*') => {
+    const lastOperation = stack[stack.length - 1];
+    const secondLastOperation = stack[stack.length - 2];
+    const lastOperationIsANumber = isValidNumber(Number(lastOperation));
+    const lastOperationIsAnOperator = isOperator(lastOperation);
+    const secondLastOperationIsAnOperator = isOperator(secondLastOperation);
+    const hasComputedResult = secondLastOperation === '=';
+
+    if (hasComputedResult) {
+      // start new stack with the result
+      // e.g. [3, '*', 4, '=', 12] --> [12, '+']
+      stack = [lastOperation, newOperation];
+      return;
+    }
+
+    if (lastOperationIsANumber) {
+      stack = [...stack, newOperation];
+      return;
+    }
+
+    if (lastOperationIsAnOperator) {
+      if (newOperation === '-' && lastOperation === '-') {
+        // convert two consecutive '-' operators to '+'
+        // e.g. [1, '-'] --> [1, '+']
+        stack[stack.length - 1] = '+';
+      } else if (newOperation === '-' && lastOperation === '+') {
+        // e.g. [1, '+'] --> [1, '-']
+        stack[stack.length - 1] = '-';
+      } else if (newOperation === '-') {
+        // e.g. [1] --> [1, '-']
+        stack = [...stack, newOperation];
+      } else if (lastOperation === '-' && secondLastOperationIsAnOperator) {
+        // if lastOperation is '-' and is preceded by another operator
+        // overwrite both with the new operator
+        // e.g. [123, '/', '-'] --> [123, '*']
+        stack = [...stack.slice(0, stack.length - 2), newOperation];
+      } else {
+        // else just overwrite the last operator
+        // e.g. [123, '/'] --> [123, '*']
+        stack[stack.length - 1] = newOperation;
+      }
+    }
+  };
+
+  const handleEqualsOperation = (newOperation: '=') => {
+    const lastOperation = stack[stack.length - 1];
+    const secondLastOperation = stack[stack.length - 2];
+    const lastOperationIsAnOperator = isOperator(lastOperation);
+    const lastOperationIsANumber = isValidNumber(Number(lastOperation));
+    const hasComputedResult = secondLastOperation === '=';
+    // ignore duplicate operation
+    // e.g. [1, '+', 1, '=', 2] --> [1, '+', 1, '=', 2] (no change)
+    if (hasComputedResult) return;
+
+    if (lastOperationIsAnOperator) {
+      // replace the previous operator, then compute
+      // e.g. [1, '+', 1, '/'] --> [1, '+', 1, '=', 2]
+      const result = computeValue(stack);
+      stack = [...stack.slice(0, stack.length - 1), newOperation, result];
+      return;
+    }
+
+    if (lastOperationIsANumber) {
+      // otherwise just compute the result
+      // e.g. [1, '+', 1, '=', 2] --> [1, '+', 1, '=', 2]
+      const result = computeValue(stack);
+      stack = [...stack, newOperation, result];
+    }
+  };
+
   const handleButtonClick = (newOperation: Operation) => {
     if (newOperation === 'clear') {
       stack = [];
@@ -68,120 +230,40 @@
       return;
     }
 
-    const lastOperation = stack[stack.length - 1];
-    const secondLastOperation = stack[stack.length - 2];
+    if (isDigit(newOperation)) {
+      handleDigitOperation(newOperation);
+      return;
+    }
+
+    if (newOperation === '.') {
+      handleDecimalOperation(newOperation);
+      return;
+    }
+
+    if (isOperator(newOperation)) {
+      handleOperatorOperation(newOperation);
+      return;
+    }
 
     if (newOperation === '=') {
-      // ignore duplicate operation
-      // e.g. [1, '+', 1, '=', 2] --> [1, '+', 1, '=', 2] (no change)
-      if (secondLastOperation === '=') return;
-      // compute updated result
-      const result = computeValue(stack);
-      // e.g. [2, '*', 6] --> [2, '*', 6, '=', 12]
-      stack[stack.length] = '=';
-      stack[stack.length] = result;
-    } else if (secondLastOperation === '=') {
-      if (isNumber(newOperation)) {
-        // start a new stack with a new number
-        // e.g. [12, '/', 4, '=', 3] --> [5]
-        stack = [newOperation];
-      } else {
-        // or start a new stack with the result
-        // e.g. [3, '*', 4, '=', 12] --> [12, '+']
-        stack = [lastOperation, newOperation];
-      }
-    } else if (isNumber(lastOperation) && isNumber(newOperation)) {
-      // EDGE CASE: ignore consecutive 0's in a new numeric operation
-      if (lastOperation === 0 && newOperation === 0) return;
-      stack[stack.length - 1] = suffixNumbers(lastOperation, newOperation);
-    } else if (isNumber(lastOperation) && newOperation === '.') {
-      // noop if the lastOperation is already a decimal
-      // e.g. [12.34] --> [12.34] (no change)
-      if (Math.round(lastOperation) !== lastOperation) return;
-      // else convert it to a decimal value
-      // e.g. [12] --> ['12.']
-      // temporarily converts to a string to allow a trailing decimal point
-      let suffixToAppend: string;
-      // EDGE CASE: value being converted to decimal is -0
-      if (Object.is(lastOperation, -0)) {
-        suffixToAppend = suffix('-0', newOperation);
-      } else {
-        suffixToAppend = suffixDecimal(lastOperation, newOperation);
-      }
-      stack[stack.length - 1] = suffixToAppend;
-    } else if (isString(lastOperation) && newOperation === '.') {
-      // EDGE CASE: lastOperation is a string decimal with a trailing '.'
-      // and newOperation is another decimal point
-      // e.g. ['12.'] --> ['12.'] (no change)
-      if (isValidNumber(Number(lastOperation))) return;
-      // else append new decimal starting with automatic '0'
-      // e.g. [12, '/'] --> [12, '/', '0.']
-      stack = [...stack, suffixDecimal(0, newOperation)];
-    } else if (isString(lastOperation) && isNumber(newOperation)) {
-      // EDGE CASE: last number is a string decimal with trailing point
-      // and needs to be continued with a numerical newOperation
-      // e.g. ['12.'] --> [12.3]
-      const asNumber = Number(lastOperation);
-      if (isValidNumber(asNumber)) {
-        // if the new operation is a 0, do not coerce to a number yet
-        // it still needs to be a string, or it will be reduced to 0
-        let suffixToAppend: string | number;
-        if (newOperation === 0) {
-          suffixToAppend = suffix(lastOperation, newOperation);
-        } else {
-          // if it is non-zero, the decimal can be coerced to a number
-          suffixToAppend = Number(suffix(lastOperation, newOperation));
-        }
-        stack[stack.length - 1] = suffixToAppend;
-      } else if (
-        lastOperation === '-' &&
-        typeof operationHandlers[secondLastOperation] === 'function'
-      ) {
-        stack[stack.length - 1] = Number(suffix(lastOperation, newOperation));
-      } else {
-        // else we're just adding a new number operation to the stack
-        // after some other string operation
-        // e.g. [123, '/'] --> [123, '/', 3]
-        stack = [...stack, newOperation];
-      }
-    } else if (isString(lastOperation) && isString(newOperation)) {
-      // EDGE CASE: if newOperation is '-', accommodate it
-      // e.g. ['1', '/'] --> ['1', '/', '-']
-      if (newOperation === '-') {
-        stack = [...stack, newOperation];
-      } else if (
-        lastOperation === '-' &&
-        typeof operationHandlers[secondLastOperation] === 'function' &&
-        typeof operationHandlers[newOperation] === 'function'
-      ) {
-        // EDGE CASE: if lastOperation was '-' and secondLastOperation was also an operator,
-        // and the new operation is also an operator
-        // overwrite the secondLastOperation as well
-        stack = [...stack.slice(0, stack.length - 2), newOperation];
-      } else {
-        // else simply overwrite that lastOperation with the newOperation,
-        // e.g. [123, '/'] --> [123, '*']
-        stack[stack.length - 1] = newOperation;
-      }
-    } else {
-      stack = [...stack, newOperation];
+      handleEqualsOperation(newOperation);
     }
   };
 
   const handleKeydown = (e: KeyboardEvent) => {
-    if (/[0-9]/.test(e.key)) {
-      const keyNum = Number(e.key);
-      activeKey = keyNum;
-      handleButtonClick(keyNum);
+    let valueToHandle = null;
+    if (isDigit(e.key)) {
+      valueToHandle = Number(e.key);
     } else if (/[\/\*\-\+\=]/.test(e.key)) {
-      activeKey = e.key;
-      handleButtonClick(e.key);
+      valueToHandle = e.key;
     } else if (e.key === 'Enter') {
-      activeKey = '=';
-      handleButtonClick('=');
+      valueToHandle = '=';
     } else if (e.key === 'Escape') {
-      activeKey = 'clear';
-      handleButtonClick('clear');
+      valueToHandle = 'clear';
+    }
+    if (valueToHandle !== null) {
+      activeKey = valueToHandle;
+      handleButtonClick(valueToHandle);
     }
   };
 </script>
@@ -194,6 +276,7 @@
     max-width: 100%;
     width: 15rem;
     padding: 0.5rem;
+    margin: 0 auto;
   }
   .calculator-inner {
     border-radius: 1rem;
