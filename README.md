@@ -2,6 +2,8 @@
 
 Simple sample project for [Svelte](https://svelte.dev).
 
+Live [preview](https://udayanshevade.github.io/svelte-calculator/).
+
 Made for this [prompt](https://www.freecodecamp.org/learn/front-end-libraries/front-end-libraries-projects/build-a-javascript-calculator).
 
 Generated with the svelte template from https://github.com/sveltejs/template.
