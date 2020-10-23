@@ -110,6 +110,28 @@ describe('Calculator', () => {
           await waitFor(() => expect(display).toHaveTextContent(output));
         });
       });
+
+      describe('handles a non-digit operation in the first place', () => {
+        it('as a decimal', async () => {
+          render(Calculator);
+          const display = screen.getByRole('region');
+
+          const inputs = ['.', '3'];
+          const output = '0.3';
+          applyInputs(inputs);
+          await waitFor(() => expect(display).toHaveTextContent(output));
+        });
+
+        it('as an operator', async () => {
+          render(Calculator);
+          const display = screen.getByRole('region');
+
+          const inputs = ['/', '3', '='];
+          const output = '0 / 3 = 0';
+          applyInputs(inputs);
+          await waitFor(() => expect(display).toHaveTextContent(output));
+        });
+      });
     });
 
     it('handles a negative value', async () => {
@@ -199,6 +221,12 @@ describe('Calculator', () => {
       const display = screen.getByRole('region');
       userEvent.type(display, '12345');
       await waitFor(() => expect(display).toHaveTextContent('12345'));
+    });
+    it('for decimal', async () => {
+      render(Calculator);
+      const display = screen.getByRole('region');
+      userEvent.type(display, '.');
+      await waitFor(() => expect(display).toHaveTextContent('.'));
     });
     it('for operators', async () => {
       render(Calculator);
