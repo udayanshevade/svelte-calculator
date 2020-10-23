@@ -287,6 +287,8 @@
       valueToHandle = '=';
     } else if (e.key === 'Escape') {
       valueToHandle = 'clear';
+    } else if (e.key === '.') {
+      valueToHandle = '.';
     }
     if (valueToHandle !== null) {
       activeKey = valueToHandle;
