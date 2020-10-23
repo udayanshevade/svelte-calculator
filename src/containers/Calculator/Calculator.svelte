@@ -250,8 +250,11 @@
     }
 
     if (!stack.length) {
-      if (isNumber(newOperation)) {
+      if (isDigit(newOperation)) {
         stack = [newOperation];
+      } else if (isOperator(newOperation) || newOperation === '.') {
+        handleButtonClick(0);
+        handleButtonClick(newOperation);
       }
       return;
     }
